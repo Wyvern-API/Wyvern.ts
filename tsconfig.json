@@ -8,7 +8,14 @@
 
         "strict": true,
         "outDir": "build",
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+
+        "baseUrl": "src",
+
+        "paths": {
+            "@WyvernTypes/*": ["types/*"],
+            "@gateway/*": ["gateway/*"]
+        }
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules"]
