@@ -4,6 +4,7 @@ export enum CloseCodes {
     DecodeError,
     NotAuthenticated,
     AuthenticationFailed,
+    AlreadyAuthenticated,
     SessionDepreciated,
     InvalidSequence,
     Ratelimited,
@@ -12,16 +13,6 @@ export enum CloseCodes {
     ShardingRequired,
     InvalidAPIVersion,
     InvalidIntents,
-    DissallowedIntents
+    DisallowedIntents
 }
 
-export const IrreversibleCodes = Object.freeze([
-    1000,
-    CloseCodes.AuthenticationFailed,
-    CloseCodes.InvalidShard,
-    CloseCodes.ShardingRequired,
-    CloseCodes.InvalidIntents,
-    CloseCodes.DissallowedIntents
-]);
-
-export const UnresumableCodes = Object.freeze([1000, CloseCodes.SessionDepreciated, CloseCodes.InvalidSequence]);

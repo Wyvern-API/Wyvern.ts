@@ -14,7 +14,8 @@
 
         "paths": {
             "@WyvernTypes/*": ["types/*"],
-            "@gateway/*": ["gateway/*"]
+            "@WyvernGateway/*": ["gateway/*"],
+            "@WyvernConstants": ["constants/"]
         }
     },
     "include": ["src/**/*"],
