@@ -69,4 +69,6 @@ export type Events =
     //Webhooks
     | 'WEBHOOKS_UPDATE';
 
-export type EventNames = SnakeToCamelCase<Events>;
+export type EventNames = {
+    [T in Events]: SnakeToCamelCase<T>;
+};
