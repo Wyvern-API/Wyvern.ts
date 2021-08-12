@@ -1,4 +1,4 @@
-import { CloseCodes } from "@WyvernTypes/gateway";
+import { CloseCodes } from '@WyvernTypes/gateway';
 
 export const IrreversibleCodes = Object.freeze([
     1000,
@@ -10,4 +10,3 @@ export const IrreversibleCodes = Object.freeze([
 ]);
 
 export const UnresumableCodes = Object.freeze([1000, CloseCodes.SessionDepreciated, CloseCodes.InvalidSequence]);
-

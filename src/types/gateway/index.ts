@@ -1,2 +1,2 @@
 export * from './opcodes';
-export * from "./closeCodes";
+export * from './close-codes';

@@ -1,5 +1,6 @@
-import { OpCodes } from '@WyvernTypes/gateway';
+import { GatewayURL } from '@WyvernConstants/gateway';
 import { EventEmitter } from 'events';
+import WebSocket from 'ws';
 
 class Gateway extends EventEmitter {
     private static instance: Gateway;
@@ -11,11 +12,27 @@ class Gateway extends EventEmitter {
         return this.instance;
     }
 
+    private ws?: WebSocket;
+
     private constructor(public readonly id: number) {
         super();
     }
 
-    public connect(): void {}
+    public connect(): void {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.identify();
+            return;
+        }
+
+        const ws = (this.ws = new WebSocket(GatewayURL));
+
+        ws.on('open', () => {});
+        ws.on('message', (data) => {
+            console.log(data);
+        });
+        ws.on('error', () => {});
+        ws.on('close', () => {});
+    }
 
     public disconnect(): void {}
 
