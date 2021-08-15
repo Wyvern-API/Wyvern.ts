@@ -1,4 +1,4 @@
-import { SnakeToCamelCase } from '@WyvernUtils/types';
+import { SnakeToCamelCase } from '../../utils/types';
 
 export type Events =
     | 'READY'

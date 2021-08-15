@@ -2,7 +2,6 @@
     "compilerOptions": {
         "lib": ["ES2015"],
         "target": "ES6",
-        "module": "CommonJS",
         "esModuleInterop": true,
         "skipLibCheck": true,
 
@@ -10,14 +9,9 @@
         "outDir": "build",
         "experimentalDecorators": true,
 
-        "baseUrl": "src",
-
-        "paths": {
-            "@WyvernTypes/*": ["types/*"],
-            "@WyvernGateway/*": ["gateway/*"],
-            "@WyvernConstants/*": ["constants/*"],
-            "@WyvernUtils/*": ["utils/*"]
-        }
+        "moduleResolution": "node",
+        "module": "CommonJS",
+        "declaration": true
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules"]

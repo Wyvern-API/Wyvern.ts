@@ -1,4 +1,4 @@
-import { CloseCodes } from '@WyvernTypes/gateway';
+import { CloseCodes } from '../types/gateway';
 
 export const GatewayURL = 'wss://gateway.discord.gg/?v=9&encoding=json';
 
