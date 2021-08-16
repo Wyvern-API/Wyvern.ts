@@ -4,20 +4,29 @@ import { TextDecoder } from 'util';
 import WebSocket, { Data } from 'ws';
 
 import { Client } from '../client/client';
-import { GatewayURL, Status } from '../constants';
-import { HelloData, IdentifyData, OpCodes, Payload, RateLimit, ResponsePayload, ResumeData } from '../types/gateway';
+import { CloseCodeErrorsMessages, GatewayURL, IrreversibleCodes, GatewayEvents, UnresumableCodes } from '../constants';
+import {
+    CloseCodes,
+    HelloData,
+    IdentifyData,
+    OpCodes,
+    Payload,
+    RateLimit,
+    ResponsePayload,
+    ResumeData
+} from '../types/gateway';
 
 class Gateway extends EventEmitter {
     private static instance: Gateway;
 
     public static getInstance(id: number): Gateway {
-        if (!this.instance) {
-            return new Gateway(id);
+        if (this.instance == null) {
+            this.instance = new Gateway(id);
         }
         return this.instance;
     }
 
-    public get status(): Status {
+    public get status(): GatewayEvents {
         return this._status;
     }
 
@@ -25,14 +34,12 @@ class Gateway extends EventEmitter {
         return this._connectedAt;
     }
 
-    private readonly config = Client.config;
-
     private ws?: WebSocket;
     private sessionId = '';
     private sequence = -1;
     private closeSequence = -1;
     private _connectedAt = 0;
-    private _status: Status = Status.Idle;
+    private _status: GatewayEvents = GatewayEvents.Idle;
     private heartbeatInterval?: NodeJS.Timer;
     private lastHeartbeatAck = true;
     private compression = false;
@@ -58,35 +65,52 @@ class Gateway extends EventEmitter {
     }
 
     public connect(): void {
-        if (this.ws?.readyState === WebSocket.OPEN) {
-            this.identify();
+        if (this.ws) {
+            this.emit(GatewayEvents.Info, 'A connection was already found when calling connect()');
             return;
         }
 
         const ws = (this.ws = new WebSocket(GatewayURL));
+        this._status = GatewayEvents.Connecting;
 
-        //ws.on('open', () => {});
+        ws.on('open', () => {
+            this.emit((this._status = GatewayEvents.Ready), 'Websocket opened');
+        });
         ws.on('message', (data) => this.onMessage(data));
-        //ws.on('error', () => {});
-        ws.on('close', (code: number) => this.disconnect(code));
+        ws.on('error', (err) => console.log(err));
+        ws.on('close', (code) => this.disconnect(code));
     }
 
-    public disconnect(code = 4000): void {
+    public disconnect(code: CloseCodes = 4000): void {
         if (!this.ws) return;
-        this.ws.close(code);
+        if (this.ws.readyState === WebSocket.OPEN) this.ws.close(code);
         this.ws = undefined;
 
         if (this.ratelimit.timer) clearTimeout(this.ratelimit.timer);
         this.ratelimit.queue = [];
         this.ratelimit.remaining = 120;
 
-        this._status = Status.Disconnected;
+        this._status = GatewayEvents.Disconnected;
+        this._connectedAt = -1;
         this.closeSequence = this.sequence;
         this.sequence = -1;
 
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
-        this.emit('closed', code);
+        this.emit(
+            (this._status = GatewayEvents.Disconnected),
+            `Weboscket has disconnected with close code ${code}: 
+            ${CloseCodeErrorsMessages[code]}`
+        );
+
+        if (UnresumableCodes.includes(code)) {
+            this.sessionId = '';
+        }
+
+        if (!IrreversibleCodes.includes(code)) {
+            this.emit((this._status = GatewayEvents.Reconnecting), 'Websocket is reconnecting...');
+            this.connect();
+        }
     }
 
     public send(data: ResponsePayload, priority = false): void {
@@ -124,6 +148,8 @@ class Gateway extends EventEmitter {
         if (!packet) {
             return;
         }
+
+        this.emit(GatewayEvents.Message, `Received OpCode ${packet.op}`); //Temporary
 
         if (packet.s) {
             this.sequence = packet.s;
@@ -163,9 +189,8 @@ class Gateway extends EventEmitter {
         }
     }
 
-    private handleEvents(packet: Payload): void {
-        this.emit(packet.t, packet.d); //Temporary
-    }
+    // eslint-disable-next-line
+    private handleEvents(packet: Payload): void {}
 
     private sendHeartbeat(ignoreLastHeartAck = false): void {
         if (!this.lastHeartbeatAck && !ignoreLastHeartAck) {
@@ -200,7 +225,7 @@ class Gateway extends EventEmitter {
     }
 
     private identifyNew(): void {
-        const { token, intents } = this.config;
+        const { token, intents } = Client.config;
 
         const data: IdentifyData = {
             token,
@@ -222,7 +247,7 @@ class Gateway extends EventEmitter {
 
     private resume(): void {
         if (!this.sessionId || !this.closeSequence) return;
-        const { token } = this.config;
+        const { token } = Client.config;
 
         const data: ResumeData = {
             token,

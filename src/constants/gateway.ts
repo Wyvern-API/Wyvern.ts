@@ -34,3 +34,15 @@ export const CloseCodeErrorsMessages = {
     [CloseCodes.DisallowedIntents]:
         "You're requesting some privileged intents like Presence Intent and Server Member Intent, try enabling them in the devloper portal https://discord.com/developers/applications/"
 };
+
+export enum GatewayEvents {
+    Ready = 'Ready',
+    Connecting = 'Connecting',
+    Reconnecting = 'Reconnecting',
+    Disconnected = 'Disconnected',
+    Resuming = 'Resuming',
+    Idle = 'Idle',
+    AwaitingGuilds = 'AwaitingGuilds',
+    Info = 'Info',
+    Message = 'Message'
+}

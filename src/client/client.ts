@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 
+import { GatewayEvents } from '../constants';
 import Gateway from '../gateway';
 import { ShardId } from '../sharding';
 import { BotConfig, ClientOptions } from '../types/config';
@@ -12,6 +13,8 @@ export class Client extends EventEmitter {
         return this._config;
     }
 
+    private gateway = Gateway.getInstance(ShardId);
+
     constructor(private options: ClientOptions) {
         super();
     }
@@ -22,6 +25,17 @@ export class Client extends EventEmitter {
 
     public async connect(): Promise<void> {
         await this.loadConfig();
-        Gateway.getInstance(ShardId).connect();
+        this.gateway.connect();
+        this.handleGateway();
+    }
+
+    private handleGateway(): void {
+        [...Object.keys(GatewayEvents).map((k: string) => GatewayEvents[k as GatewayEvents])].forEach(
+            (event: string) => {
+                this.gateway.on(event, (message: string) => {
+                    this.emit('gateway-debug', `[Shard ${ShardId} => ${event}]: ${message}`);
+                });
+            }
+        );
     }
 }
