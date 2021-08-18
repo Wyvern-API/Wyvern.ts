@@ -1,9 +1,11 @@
+import chalk from 'chalk';
 import { EventEmitter } from 'events';
 
 import { GatewayEvents } from '../constants';
 import Gateway from '../gateway';
 import { ShardId } from '../sharding';
 import { BotConfig, ClientOptions } from '../types/config';
+import { Colors } from '../utils';
 import { loadConfig } from '../utils/configManager';
 
 export class Client extends EventEmitter {
@@ -17,6 +19,7 @@ export class Client extends EventEmitter {
 
     constructor(private options: ClientOptions) {
         super();
+        this.handleGateway();
     }
 
     private async loadConfig(): Promise<void> {
@@ -26,16 +29,20 @@ export class Client extends EventEmitter {
     public async connect(): Promise<void> {
         await this.loadConfig();
         this.gateway.connect();
-        this.handleGateway();
     }
 
     private handleGateway(): void {
-        [...Object.keys(GatewayEvents).map((k: string) => GatewayEvents[k as GatewayEvents])].forEach(
-            (event: string) => {
-                this.gateway.on(event, (message: string) => {
-                    this.emit('gateway-debug', `[Shard ${ShardId} => ${event}]: ${message}`);
-                });
-            }
-        );
+        [...Object.keys(GatewayEvents).map((key) => GatewayEvents[key as GatewayEvents])].forEach((event) => {
+            this.gateway.on(event, (logColor: Colors, message: string) => {
+                this.emit(
+                    'gateway-debug',
+                    chalk[logColor](
+                        `[${new Date().toLocaleTimeString('en-us', {
+                            hour12: false
+                        })}, Shard ${ShardId} - ${event}]: ${message}`
+                    )
+                );
+            });
+        });
     }
 }

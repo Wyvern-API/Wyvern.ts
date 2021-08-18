@@ -23,5 +23,8 @@ export async function loadConfig(path: string): Promise<BotConfig> {
 }
 
 export function calculateIntents(intents: GatewayIntents[]): number {
-    return intents.reduce((acc, next) => (acc |= typeof next === 'string' ? GatewayIntents[next] : next), 0);
+    return intents.reduce((acc, next) => {
+        if (GatewayIntents[next] == undefined) throw new Error('Invalid Intent provided');
+        return (acc |= typeof next === 'string' ? GatewayIntents[next] : next);
+    }, 0);
 }

@@ -1,7 +1,5 @@
 import { EventEmitter } from 'events';
-import { FlushValues, Inflate } from 'pako';
-import { TextDecoder } from 'util';
-import WebSocket, { Data } from 'ws';
+import WebSocket from 'ws';
 
 import { Client } from '../client/client';
 import { CloseCodeErrorsMessages, GatewayURL, IrreversibleCodes, GatewayEvents, UnresumableCodes } from '../constants';
@@ -15,6 +13,7 @@ import {
     ResponsePayload,
     ResumeData
 } from '../types/gateway';
+import { Colors } from '../utils';
 
 class Gateway extends EventEmitter {
     private static instance: Gateway;
@@ -42,8 +41,6 @@ class Gateway extends EventEmitter {
     private _status: GatewayEvents = GatewayEvents.Idle;
     private heartbeatInterval?: NodeJS.Timer;
     private lastHeartbeatAck = true;
-    private compression = false;
-    private encoding = 'json';
 
     private ratelimit: RateLimit = {
         queue: [],
@@ -53,20 +50,13 @@ class Gateway extends EventEmitter {
         timer: null
     };
 
-    private decoder = new TextDecoder();
-
-    private inflate = new Inflate({
-        chunkSize: 65535,
-        to: 'string'
-    });
-
     private constructor(public readonly id: number) {
         super();
     }
 
     public connect(): void {
         if (this.ws) {
-            this.emit(GatewayEvents.Info, 'A connection was already found when calling connect()');
+            this.emitEvent(GatewayEvents.Info, Colors.White, 'A connection was already found when calling connect()');
             return;
         }
 
@@ -74,9 +64,9 @@ class Gateway extends EventEmitter {
         this._status = GatewayEvents.Connecting;
 
         ws.on('open', () => {
-            this.emit((this._status = GatewayEvents.Ready), 'Websocket opened');
+            this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
         });
-        ws.on('message', (data) => this.onMessage(data));
+        ws.on('message', (data: string) => this.onMessage(data));
         ws.on('error', (err) => console.log(err));
         ws.on('close', (code) => this.disconnect(code));
     }
@@ -97,10 +87,13 @@ class Gateway extends EventEmitter {
 
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
-        this.emit(
-            (this._status = GatewayEvents.Disconnected),
-            `Weboscket has disconnected with close code ${code}: 
-            ${CloseCodeErrorsMessages[code]}`
+        const erroMessage = CloseCodeErrorsMessages[code] || '';
+
+        this.emitEvent(
+            GatewayEvents.Disconnected,
+            Colors.Red,
+            `Weboscket has disconnected with close code ${code}${erroMessage != null ? ':' : ''}
+            ${erroMessage}`
         );
 
         if (UnresumableCodes.includes(code)) {
@@ -108,7 +101,7 @@ class Gateway extends EventEmitter {
         }
 
         if (!IrreversibleCodes.includes(code)) {
-            this.emit((this._status = GatewayEvents.Reconnecting), 'Websocket is reconnecting...');
+            this.emitEvent(GatewayEvents.Reconnecting, Colors.Yellow, 'Websocket is reconnecting...');
             this.connect();
         }
     }
@@ -118,30 +111,8 @@ class Gateway extends EventEmitter {
         this.processQueue();
     }
 
-    private onMessage(data: Data): void {
-        let raw;
-        if (data instanceof ArrayBuffer) {
-            data = new Uint8Array(data) as Uint8Array;
-            const { length } = data as Uint8Array;
-            if (this.compression) {
-                const Z_LIB_SUFFIX = [0x00, 0x00, 0xff, 0xff];
-                const flush =
-                    length >= 4 &&
-                    (data as Uint8Array).slice(-4).every((element, index) => element === Z_LIB_SUFFIX[index]);
-
-                this.inflate.push(data, flush && FlushValues.Z_SYNC_FLUSH);
-                this.inflate.result;
-            }
-        } else raw = data;
-
-        if (this.encoding === 'json') {
-            if (typeof raw !== 'string') {
-                raw = this.decoder.decode(raw as ArrayBuffer);
-            }
-            raw = JSON.parse(raw);
-        }
-
-        this.handlePacket(raw as Payload);
+    private onMessage(data: string): void {
+        this.handlePacket(JSON.parse(data) as Payload);
     }
 
     private handlePacket(packet: Payload): void {
@@ -149,7 +120,7 @@ class Gateway extends EventEmitter {
             return;
         }
 
-        this.emit(GatewayEvents.Message, `Received OpCode ${packet.op}`); //Temporary
+        this.emitEvent(GatewayEvents.Message, Colors.White, `Received OpCode ${packet.op}`); //Temporary
 
         if (packet.s) {
             this.sequence = packet.s;
@@ -284,6 +255,11 @@ class Gateway extends EventEmitter {
             return;
         }
         this.ws?.send(JSON.stringify(packet));
+    }
+
+    private emitEvent(event: GatewayEvents, logColor: Colors, message: string): void {
+        this._status = event;
+        this.emit(event, logColor, message);
     }
 }
 
