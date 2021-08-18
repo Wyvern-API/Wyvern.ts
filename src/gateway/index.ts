@@ -150,11 +150,13 @@ class Gateway extends EventEmitter {
                 break;
             case OpCodes.InvalidSession:
                 const data = packet.d as boolean;
-                if (data) {
-                    this.identify();
-                    return;
-                }
-                this.disconnect();
+                setTimeout(() => {
+                    if (!data) {
+                        this.identifyNew();
+                    } else {
+                        this.resume();
+                    }
+                }, (Math.random() * 4 + 1) * 1000);
                 break;
             case OpCodes.HeartbeatAck:
                 this.lastHeartbeatAck = true;
