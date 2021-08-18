@@ -1,4 +1,4 @@
-import { CloseCodes } from '../types/gateway';
+import { CloseCodes, IdentifyProperties } from '../types/gateway';
 
 export const GatewayURL = 'wss://gateway.discord.gg/?v=9&encoding=json';
 
@@ -46,3 +46,9 @@ export enum GatewayEvents {
     Info = 'Info',
     Message = 'Message'
 }
+
+export const ConnectionProperties: IdentifyProperties = {
+    $os: process.platform,
+    $browser: 'Wyvern.ts',
+    $device: 'Wyvern.ts'
+};

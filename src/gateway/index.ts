@@ -2,7 +2,14 @@ import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 
 import { Client } from '../client/client';
-import { CloseCodeErrorsMessages, GatewayURL, IrreversibleCodes, GatewayEvents, UnresumableCodes } from '../constants';
+import {
+    CloseCodeErrorsMessages,
+    GatewayURL,
+    IrreversibleCodes,
+    GatewayEvents,
+    UnresumableCodes,
+    ConnectionProperties
+} from '../constants';
 import {
     CloseCodes,
     HelloData,
@@ -201,11 +208,8 @@ class Gateway extends EventEmitter {
         const data: IdentifyData = {
             token,
             intents,
-            properties: {
-                $os: process.platform,
-                $browser: 'Wyvern.ts',
-                $device: 'Wyvern.ts'
-            },
+            properties: ConnectionProperties,
+            //Temporary
             presence: {
                 status: 'online',
                 afk: false,
