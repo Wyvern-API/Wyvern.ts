@@ -1,6 +1,7 @@
 import { CloseCodes, IdentifyProperties } from '../types/gateway';
 
-export const GatewayURL = 'wss://gateway.discord.gg/?v=9&encoding=json';
+export const GatewayURL = (compression: boolean, format: 'json' | 'etf'): string =>
+    `wss://gateway.discord.gg/?v=9&encoding=${format}${compression ? '&compression=zlib-stream' : ''}`;
 
 export const IrreversibleCodes = Object.freeze([
     1000,

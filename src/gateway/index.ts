@@ -1,5 +1,6 @@
+import { pack, unpack } from 'erlpack';
 import { EventEmitter } from 'events';
-import WebSocket from 'ws';
+import WebSocket, { Data } from 'ws';
 
 import { Client } from '../client/client';
 import {
@@ -67,13 +68,17 @@ class Gateway extends EventEmitter {
             return;
         }
 
-        const ws = (this.ws = new WebSocket(GatewayURL));
+        const {
+            gateway: { compression, format }
+        } = Client.config;
+
+        const ws = (this.ws = new WebSocket(GatewayURL(compression, format)));
         this._status = GatewayEvents.Connecting;
 
         ws.on('open', () => {
             this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
         });
-        ws.on('message', (data: string) => this.onMessage(data));
+        ws.on('message', (data) => this.onMessage(data));
         ws.on('error', (err) => console.log(err));
         ws.on('close', (code) => this.disconnect(code));
     }
@@ -118,8 +123,19 @@ class Gateway extends EventEmitter {
         this.processQueue();
     }
 
-    private onMessage(data: string): void {
-        this.handlePacket(JSON.parse(data) as Payload);
+    private onMessage(data: Data): void {
+        const {
+            gateway: { format, compression }
+        } = Client.config;
+
+        if (compression) {
+        }
+
+        if (format === 'json') {
+            this.handlePacket(JSON.parse(data as string) as Payload);
+        } else {
+            this.handlePacket(unpack(data as Buffer) as Payload);
+        }
     }
 
     private handlePacket(packet: Payload): void {
@@ -257,10 +273,13 @@ class Gateway extends EventEmitter {
     }
 
     private sendPacket(packet: ResponsePayload): void {
+        const {
+            gateway: { format }
+        } = Client.config;
         if (this.ws?.readyState !== WebSocket.OPEN) {
             return;
         }
-        this.ws?.send(JSON.stringify(packet));
+        this.ws?.send(format === 'json' ? JSON.stringify(packet) : pack(packet));
     }
 
     private emitEvent(event: GatewayEvents, logColor: Colors, message: string): void {
