@@ -6,10 +6,18 @@ export interface ClientOptions {
 
 export interface JSONBotConfig extends BaseConfig {
     intents: GatewayIntents[];
+    gateway?: {
+        compression?: boolean;
+        format?: 'json' | 'etf';
+    };
 }
 
 export interface BotConfig extends BaseConfig {
     intents: number;
+    gateway: {
+        compression: boolean;
+        format: 'json' | 'etf';
+    };
 }
 
 export interface BaseConfig {
