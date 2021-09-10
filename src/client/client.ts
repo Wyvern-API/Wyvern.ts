@@ -15,23 +15,20 @@ export class Client extends EventEmitter {
         return this._config;
     }
 
-    private gateway = Gateway.getInstance(ShardId);
+    private gateway: Gateway;
 
     constructor(private options: ClientOptions) {
         super();
-        this.handleGateway();
+        Client._config = loadConfig(this.options.path);
+        this.gateway = Gateway.getInstance(ShardId);
+        this.handleGatewayDebug();
     }
 
-    private async loadConfig(): Promise<void> {
-        Client._config = await loadConfig(this.options.path);
-    }
-
-    public async connect(): Promise<void> {
-        await this.loadConfig();
+    public connect(): void {
         this.gateway.connect();
     }
 
-    private handleGateway(): void {
+    private handleGatewayDebug(): void {
         [...Object.keys(GatewayEvents).map((key) => GatewayEvents[key as GatewayEvents])].forEach((event) => {
             this.gateway.on(event, (logColor: Colors, message: string) => {
                 this.emit(

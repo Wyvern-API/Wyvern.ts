@@ -1,6 +1,7 @@
 import { pack, unpack } from 'erlpack';
 import { EventEmitter } from 'events';
 import WebSocket, { Data } from 'ws';
+import { Z_SYNC_FLUSH, Inflate } from 'zlib-sync';
 
 import { Client } from '../client/client';
 import {
@@ -41,7 +42,12 @@ class Gateway extends EventEmitter {
         return this._connectedAt;
     }
 
+    private config = Client.config;
     private ws?: WebSocket;
+    private zlib: Inflate = new Inflate({
+        chunkSize: 65535,
+        to: this.config.gateway.format === 'json' ? 'string' : undefined
+    });
     private sessionId = '';
     private sequence = -1;
     private closeSequence = -1;
@@ -69,10 +75,10 @@ class Gateway extends EventEmitter {
         }
 
         const {
-            gateway: { compression, format }
-        } = Client.config;
+            gateway: { transportCompression, format }
+        } = this.config;
 
-        const ws = (this.ws = new WebSocket(GatewayURL(compression, format)));
+        const ws = (this.ws = new WebSocket(GatewayURL(transportCompression, format)));
         this._status = GatewayEvents.Connecting;
 
         ws.on('open', () => {
@@ -99,13 +105,13 @@ class Gateway extends EventEmitter {
 
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
-        const erroMessage = CloseCodeErrorsMessages[code] || '';
+        const errorMessage = CloseCodeErrorsMessages[code] || '';
 
         this.emitEvent(
             GatewayEvents.Disconnected,
             Colors.Red,
-            `Weboscket has disconnected with close code ${code}${erroMessage != null ? ':' : ''}
-            ${erroMessage}`
+            `Weboscket has disconnected with close code ${code}${errorMessage != null ? ':' : ''}
+            ${errorMessage}`
         );
 
         if (UnresumableCodes.includes(code)) {
@@ -115,6 +121,8 @@ class Gateway extends EventEmitter {
         if (!IrreversibleCodes.includes(code)) {
             this.emitEvent(GatewayEvents.Reconnecting, Colors.Yellow, 'Websocket is reconnecting...');
             this.connect();
+        } else {
+            throw new Error(errorMessage);
         }
     }
 
@@ -125,14 +133,36 @@ class Gateway extends EventEmitter {
 
     private onMessage(data: Data): void {
         const {
-            gateway: { format, compression }
-        } = Client.config;
+            gateway: { format, transportCompression, payloadCompression }
+        } = this.config;
 
-        if (compression) {
+        if (data instanceof ArrayBuffer) {
+            data = new Uint8Array(data);
+        }
+
+        if (transportCompression) {
+            const raw = data as Buffer;
+            const l = raw.length;
+            const flush =
+                l >= 4 && raw[l - 4] === 0x00 && raw[l - 3] === 0x00 && raw[l - 2] === 0xff && raw[l - 1] === 0xff;
+
+            this.zlib.push(raw, flush && Z_SYNC_FLUSH);
+
+            if (!flush) {
+                return;
+            }
+            data = Buffer.from(this.zlib.result as Buffer);
+        } else if (payloadCompression && format === 'json') {
+            const raw = data as Buffer;
+            const zlib = new Inflate({ to: 'string' });
+            zlib.push(raw);
+            if (zlib.result != null) {
+                data = Buffer.from(zlib.result as Buffer);
+            }
         }
 
         if (format === 'json') {
-            this.handlePacket(JSON.parse(data as string) as Payload);
+            this.handlePacket(JSON.parse(data.toString()) as Payload);
         } else {
             this.handlePacket(unpack(data as Buffer) as Payload);
         }
@@ -221,12 +251,17 @@ class Gateway extends EventEmitter {
     }
 
     private identifyNew(): void {
-        const { token, intents } = Client.config;
+        const {
+            token,
+            intents,
+            gateway: { payloadCompression }
+        } = this.config;
 
         const data: IdentifyData = {
             token,
             intents,
             properties: ConnectionProperties,
+            compress: payloadCompression,
             //Temporary
             presence: {
                 status: 'online',
@@ -240,7 +275,7 @@ class Gateway extends EventEmitter {
 
     private resume(): void {
         if (!this.sessionId || !this.closeSequence) return;
-        const { token } = Client.config;
+        const { token } = this.config;
 
         const data: ResumeData = {
             token,
@@ -275,7 +310,7 @@ class Gateway extends EventEmitter {
     private sendPacket(packet: ResponsePayload): void {
         const {
             gateway: { format }
-        } = Client.config;
+        } = this.config;
         if (this.ws?.readyState !== WebSocket.OPEN) {
             return;
         }

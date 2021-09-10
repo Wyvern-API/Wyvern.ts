@@ -4,20 +4,20 @@ export interface ClientOptions {
     path: string;
 }
 
+export interface GatewayOptions {
+    payloadCompression: boolean;
+    transportCompression: boolean;
+    format: 'json' | 'etf';
+}
+
 export interface JSONBotConfig extends BaseConfig {
     intents: GatewayIntents[];
-    gateway?: {
-        compression?: boolean;
-        format?: 'json' | 'etf';
-    };
+    gateway?: Partial<GatewayOptions>;
 }
 
 export interface BotConfig extends BaseConfig {
     intents: number;
-    gateway: {
-        compression: boolean;
-        format: 'json' | 'etf';
-    };
+    gateway: GatewayOptions;
 }
 
 export interface BaseConfig {

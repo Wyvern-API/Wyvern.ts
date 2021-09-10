@@ -1,7 +1,7 @@
 import { CloseCodes, IdentifyProperties } from '../types/gateway';
 
 export const GatewayURL = (compression: boolean, format: 'json' | 'etf'): string =>
-    `wss://gateway.discord.gg/?v=9&encoding=${format}${compression ? '&compression=zlib-stream' : ''}`;
+    `wss://gateway.discord.gg/?v=9&encoding=${format}${compression ? '&compress=zlib-stream' : ''}`;
 
 export const IrreversibleCodes = Object.freeze([
     1000,
@@ -20,7 +20,7 @@ export const CloseCodeErrorsMessages = {
     [CloseCodes.UnknownOpCode]: 'An invalid OpCode has been sent',
     [CloseCodes.DecodeError]: 'An invalid Payload has been sent',
     [CloseCodes.NotAuthenticated]: 'The client has sent a Payload before identifying',
-    [CloseCodes.AuthenticationFailed]: 'You provided an invalid token, makke sure you put the correct one',
+    [CloseCodes.AuthenticationFailed]: 'You provided an invalid token, make sure you put the correct one',
     [CloseCodes.AlreadyAuthenticated]: 'The client attempted to identify again but he was already authenticated',
     [CloseCodes.SessionDepreciated]: 'The session id is no longer valid, attempt to restart a new connection...',
     [CloseCodes.InvalidSequence]:
