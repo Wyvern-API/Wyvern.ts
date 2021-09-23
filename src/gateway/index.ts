@@ -1,5 +1,8 @@
+import { pack, unpack } from 'erlpack';
 import { EventEmitter } from 'events';
-import WebSocket from 'ws';
+import { parentPort } from 'worker_threads';
+import WebSocket, { Data } from 'ws';
+import { Z_SYNC_FLUSH, Inflate } from 'zlib-sync';
 
 import { Client } from '../client/client';
 import {
@@ -10,6 +13,7 @@ import {
     UnresumableCodes,
     ConnectionProperties
 } from '../constants';
+import { ShardId } from '../sharding';
 import {
     CloseCodes,
     HelloData,
@@ -18,8 +22,10 @@ import {
     Payload,
     RateLimit,
     ResponsePayload,
-    ResumeData
-} from '../types/gateway';
+    ResumeData,
+    ShardingOPCode,
+    ShardingMessage
+} from '../types';
 import { Colors } from '../utils';
 
 class Gateway extends EventEmitter {
@@ -40,7 +46,12 @@ class Gateway extends EventEmitter {
         return this._connectedAt;
     }
 
+    private config = Client.config;
     private ws?: WebSocket;
+    private zlib: Inflate = new Inflate({
+        chunkSize: 65535,
+        to: this.config.gateway.format === 'json' ? 'string' : undefined
+    });
     private sessionId = '';
     private sequence = -1;
     private closeSequence = -1;
@@ -67,13 +78,22 @@ class Gateway extends EventEmitter {
             return;
         }
 
-        const ws = (this.ws = new WebSocket(GatewayURL));
+        const {
+            gateway: { transportCompression, format }
+        } = this.config;
+
+        const ws = (this.ws = new WebSocket(GatewayURL(transportCompression, format)));
         this._status = GatewayEvents.Connecting;
 
         ws.on('open', () => {
             this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
+            const message: ShardingMessage = {
+                op: ShardingOPCode.Connected,
+                shardId: ShardId
+            };
+            parentPort?.postMessage(message);
         });
-        ws.on('message', (data: string) => this.onMessage(data));
+        ws.on('message', (data) => this.onMessage(data));
         ws.on('error', (err) => console.log(err));
         ws.on('close', (code) => this.disconnect(code));
     }
@@ -94,13 +114,13 @@ class Gateway extends EventEmitter {
 
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
 
-        const erroMessage = CloseCodeErrorsMessages[code] || '';
+        const errorMessage = CloseCodeErrorsMessages[code] || '';
 
         this.emitEvent(
             GatewayEvents.Disconnected,
             Colors.Red,
-            `Weboscket has disconnected with close code ${code}${erroMessage != null ? ':' : ''}
-            ${erroMessage}`
+            `Weboscket has disconnected with close code ${code}${errorMessage != null ? ':' : ''}
+            ${errorMessage}`
         );
 
         if (UnresumableCodes.includes(code)) {
@@ -110,6 +130,8 @@ class Gateway extends EventEmitter {
         if (!IrreversibleCodes.includes(code)) {
             this.emitEvent(GatewayEvents.Reconnecting, Colors.Yellow, 'Websocket is reconnecting...');
             this.connect();
+        } else {
+            throw new Error(errorMessage);
         }
     }
 
@@ -118,8 +140,41 @@ class Gateway extends EventEmitter {
         this.processQueue();
     }
 
-    private onMessage(data: string): void {
-        this.handlePacket(JSON.parse(data) as Payload);
+    private onMessage(data: Data): void {
+        const {
+            gateway: { format, transportCompression, payloadCompression }
+        } = this.config;
+
+        if (data instanceof ArrayBuffer) {
+            data = new Uint8Array(data);
+        }
+
+        if (transportCompression) {
+            const raw = data as Buffer;
+            const l = raw.length;
+            const flush =
+                l >= 4 && raw[l - 4] === 0x00 && raw[l - 3] === 0x00 && raw[l - 2] === 0xff && raw[l - 1] === 0xff;
+
+            this.zlib.push(raw, flush && Z_SYNC_FLUSH);
+
+            if (!flush) {
+                return;
+            }
+            data = Buffer.from(this.zlib.result as Buffer);
+        } else if (payloadCompression && format === 'json') {
+            const raw = data as Buffer;
+            const zlib = new Inflate({ to: 'string' });
+            zlib.push(raw);
+            if (zlib.result != null) {
+                data = Buffer.from(zlib.result as Buffer);
+            }
+        }
+
+        if (format === 'json') {
+            this.handlePacket(JSON.parse(data.toString()) as Payload);
+        } else {
+            this.handlePacket(unpack(data as Buffer) as Payload);
+        }
     }
 
     private handlePacket(packet: Payload): void {
@@ -205,12 +260,19 @@ class Gateway extends EventEmitter {
     }
 
     private identifyNew(): void {
-        const { token, intents } = Client.config;
+        const {
+            token,
+            intents,
+            gateway: { payloadCompression },
+            shards
+        } = this.config;
 
         const data: IdentifyData = {
             token,
             intents,
             properties: ConnectionProperties,
+            compress: payloadCompression,
+            shard: [ShardId, shards as number], //Temporary too, shard fetching hasn't been added yet
             //Temporary
             presence: {
                 status: 'online',
@@ -224,7 +286,7 @@ class Gateway extends EventEmitter {
 
     private resume(): void {
         if (!this.sessionId || !this.closeSequence) return;
-        const { token } = Client.config;
+        const { token } = this.config;
 
         const data: ResumeData = {
             token,
@@ -257,10 +319,13 @@ class Gateway extends EventEmitter {
     }
 
     private sendPacket(packet: ResponsePayload): void {
+        const {
+            gateway: { format }
+        } = this.config;
         if (this.ws?.readyState !== WebSocket.OPEN) {
             return;
         }
-        this.ws?.send(JSON.stringify(packet));
+        this.ws?.send(format === 'json' ? JSON.stringify(packet) : pack(packet));
     }
 
     private emitEvent(event: GatewayEvents, logColor: Colors, message: string): void {
