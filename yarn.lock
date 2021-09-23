@@ -822,6 +822,14 @@
     "@typescript-eslint/types" "4.29.0"
     eslint-visitor-keys "^2.0.0"
 
+"@wyvern-api/erlpack@^0.2.2":
+  version "0.2.2"
+  resolved "https://npm.pkg.github.com/download/@wyvern-api/erlpack/0.2.2/fd44b28d489fb126de69ef157dea88d8b8e03b3cfa32f91d167193a0669ec3d7#4cae5dc5f70165dacad27de4ec5439871d52d843"
+  integrity sha512-/Wtt/xhNpgTWxdUP7UjF031oXsWt9jc2wKfAa5/sTMl2vGS/k5QiwjKuK9NTF6GHx32j9frZk+EJU09GG2rR8g==
+  dependencies:
+    bindings "^1.5.0"
+    nan "^2.14.0"
+
 abab@^2.0.3, abab@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/abab/-/abab-2.0.5.tgz#c0b678fb32d60fc1219c784d6a826fe385aeb79a"
@@ -1302,14 +1310,6 @@ enquirer@^2.3.5:
   integrity sha512-yjNnPr315/FjS4zIsUxYguYUPP2e1NK4d7E7ZOLiyYCcbFBiTMyID+2wvm2w6+pZ/odMA7cRkjhsPbltwBOrLg==
   dependencies:
     ansi-colors "^4.1.1"
-
-erlpack@^0.1.3:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/erlpack/-/erlpack-0.1.3.tgz#f6cd2a0d5b2f9d054b310c1dda98f60744b9f857"
-  integrity sha512-QeG9v8CVsY/a/IoQi8zjn23aYKcziOihAxwjUl3tI/KB4R1FjTtctDAAMovgtpC16S+WiOauers2oWwIOQtKBQ==
-  dependencies:
-    bindings "^1.5.0"
-    nan "^2.14.0"
 
 escalade@^3.1.1:
   version "3.1.1"
