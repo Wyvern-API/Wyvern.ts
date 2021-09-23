@@ -1,4 +1,4 @@
-import { pack, unpack } from 'erlpack';
+import { pack, unpack } from '@wyvern-api/erlpack';
 import { EventEmitter } from 'events';
 import { parentPort } from 'worker_threads';
 import WebSocket, { Data } from 'ws';
