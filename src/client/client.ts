@@ -1,31 +1,52 @@
 import chalk from 'chalk';
 import { EventEmitter } from 'events';
+import { isMainThread } from 'worker_threads';
 
+import { Cache } from '.';
 import { GatewayEvents } from '../constants';
 import Gateway from '../gateway';
-import { ShardId } from '../sharding';
-import { BotConfig, ClientOptions } from '../types/config';
-import { Colors } from '../utils';
-import { loadConfig } from '../utils/configManager';
+import { ShardId, ThreadManager } from '../sharding';
+import { ClientCache, BotConfig, ClientOptions } from '../types';
+import { Colors, loadConfig } from '../utils';
 
 export class Client extends EventEmitter {
-    private static _config: BotConfig;
-
     public static get config(): BotConfig {
         return this._config;
     }
 
-    private gateway: Gateway;
+    private static _config: BotConfig;
 
-    constructor(private options: ClientOptions) {
+    public get cache(): ClientCache {
+        return this._cache;
+    }
+
+    public get options(): ClientOptions {
+        return this._options;
+    }
+
+    private gateway: Gateway;
+    private readonly _cache: ClientCache;
+
+    constructor(private _options: ClientOptions) {
         super();
-        Client._config = loadConfig(this.options.path);
+        Client._config = loadConfig(this._options.path);
+
+        ThreadManager.createThreads(this);
+
         this.gateway = Gateway.getInstance(ShardId);
         this.handleGatewayDebug();
+        this._cache = {
+            guilds: new Cache<number>('guilds'),
+            channels: new Cache<number>('channels'),
+            roles: new Cache<number>('roles'),
+            users: new Cache<number>('users')
+        };
     }
 
     public connect(): void {
-        this.gateway.connect();
+        if ((isMainThread && (Client.config.shards || 1) === 1) || isMainThread === false) {
+            this.gateway.connect();
+        }
     }
 
     private handleGatewayDebug(): void {

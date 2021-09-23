@@ -2,6 +2,7 @@ import { GatewayIntents } from '../gateway';
 
 export interface ClientOptions {
     path: string;
+    main: string;
 }
 
 export interface GatewayOptions {

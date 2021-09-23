@@ -1,5 +1,6 @@
 import { pack, unpack } from 'erlpack';
 import { EventEmitter } from 'events';
+import { parentPort } from 'worker_threads';
 import WebSocket, { Data } from 'ws';
 import { Z_SYNC_FLUSH, Inflate } from 'zlib-sync';
 
@@ -12,6 +13,7 @@ import {
     UnresumableCodes,
     ConnectionProperties
 } from '../constants';
+import { ShardId } from '../sharding';
 import {
     CloseCodes,
     HelloData,
@@ -20,8 +22,10 @@ import {
     Payload,
     RateLimit,
     ResponsePayload,
-    ResumeData
-} from '../types/gateway';
+    ResumeData,
+    ShardingOPCode,
+    ShardingMessage
+} from '../types';
 import { Colors } from '../utils';
 
 class Gateway extends EventEmitter {
@@ -83,6 +87,11 @@ class Gateway extends EventEmitter {
 
         ws.on('open', () => {
             this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
+            const message: ShardingMessage = {
+                op: ShardingOPCode.Connected,
+                shardId: ShardId
+            };
+            parentPort?.postMessage(message);
         });
         ws.on('message', (data) => this.onMessage(data));
         ws.on('error', (err) => console.log(err));
@@ -254,7 +263,8 @@ class Gateway extends EventEmitter {
         const {
             token,
             intents,
-            gateway: { payloadCompression }
+            gateway: { payloadCompression },
+            shards
         } = this.config;
 
         const data: IdentifyData = {
@@ -262,6 +272,7 @@ class Gateway extends EventEmitter {
             intents,
             properties: ConnectionProperties,
             compress: payloadCompression,
+            shard: [ShardId, shards as number], //Temporary too, shard fetching hasn't been added yet
             //Temporary
             presence: {
                 status: 'online',
