@@ -2,9 +2,9 @@ import { isMainThread, parentPort, Worker, workerData } from 'worker_threads';
 
 import { Client } from '../client';
 import { ShardingMessage, ShardingOPCode, CacheType } from '../types';
-import { parse, stringify } from '../utils/json';
 
-export const ShardId = (workerData as number) || 0;
+export const ShardId = (!isMainThread && (workerData.ShardId as number)) || 0;
+export const NumShards = (!isMainThread && (workerData.totalShards as number)) || 0;
 
 export class ThreadManager extends null {
     private static threads: { shardId: number; worker: Worker }[] = [];
@@ -18,7 +18,7 @@ export class ThreadManager extends null {
             }
         } else {
             parentPort?.on('message', (raw: string) => {
-                const message = parse<ShardingMessage>(raw);
+                const message: ShardingMessage = JSON.parse(raw);
                 if (message.data == null) return;
                 switch (message.op) {
                     case ShardingOPCode.GetFromCache:
@@ -26,9 +26,10 @@ export class ThreadManager extends null {
                         const response: ShardingMessage = {
                             op: ShardingOPCode.CacheResponse,
                             shardId: message.shardId,
-                            response: data
+                            response: data,
+                            data: message.data
                         };
-                        parentPort?.postMessage(stringify(response));
+                        parentPort?.postMessage(JSON.stringify(response));
                         break;
                 }
             });
@@ -38,13 +39,12 @@ export class ThreadManager extends null {
     private static async createThread(index: number): Promise<void> {
         return new Promise((resolve, reject) => {
             const worker = new Worker(this.client.options.main, {
-                workerData: index
+                workerData: { ShardId: index, totalShards: Client.config.shards }
             });
             this.threads.push({ shardId: index, worker });
 
             worker.on('message', (raw: unknown) => {
-                const message: ShardingMessage =
-                    typeof raw === 'string' ? parse<ShardingMessage>(raw) : (raw as ShardingMessage);
+                const message: ShardingMessage = typeof raw === 'string' ? JSON.parse(raw) : (raw as ShardingMessage);
                 switch (message.op) {
                     case ShardingOPCode.Connected:
                         setTimeout(resolve, 5000);
@@ -55,15 +55,16 @@ export class ThreadManager extends null {
                     case ShardingOPCode.GetFromCache:
                         this.threads
                             .filter((thread) => thread.shardId !== message.shardId)
-                            .forEach((thread) => thread.worker.postMessage(stringify(message)));
+                            .forEach((thread) => thread.worker.postMessage(JSON.stringify(message)));
                         break;
                     case ShardingOPCode.CacheResponse:
                         const response: ShardingMessage = {
                             op: ShardingOPCode.CacheResponse,
                             shardId: -1,
-                            response: message.response
+                            response: message.response,
+                            data: message.data
                         };
-                        this.threads[message.shardId].worker.postMessage(stringify(response));
+                        this.threads[message.shardId].worker.postMessage(JSON.stringify(response));
                         break;
                 }
             });
@@ -71,10 +72,11 @@ export class ThreadManager extends null {
         });
     }
 
-    public static async requestFromCache<T>(id: bigint, type: CacheType): Promise<T | undefined> {
+    public static async requestFromCache<T>(id: string, type: CacheType): Promise<T | undefined> {
         if (isMainThread) throw new Error("Main thread can't use requestFromCache method");
 
         return new Promise((resolve) => {
+            const responses = [];
             const data: ShardingMessage = {
                 op: ShardingOPCode.GetFromCache,
                 shardId: ShardId,
@@ -85,13 +87,21 @@ export class ThreadManager extends null {
             };
 
             const handleMessage = (message: ShardingMessage<T>): void => {
-                if (message.op === ShardingOPCode.CacheResponse && message.response != null) {
-                    resolve(message.response);
+                if (message.data?.id === id) {
+                    responses.push(message);
+
+                    if (message.op === ShardingOPCode.CacheResponse && message.response != null) {
+                        resolve(message.response);
+                    }
+
+                    if (responses.length === NumShards - 1) {
+                        resolve(undefined);
+                    }
                 }
             };
 
-            parentPort?.postMessage(stringify(data));
-            parentPort?.on('message', (message: string) => handleMessage(parse(message)));
+            parentPort?.postMessage(JSON.stringify(data));
+            parentPort?.on('message', (message: string) => handleMessage(JSON.parse(message)));
         });
     }
 }

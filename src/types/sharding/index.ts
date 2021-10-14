@@ -5,7 +5,7 @@ export interface ShardingMessage<T = unknown> {
     shardId: number;
     data?: {
         type: CacheType;
-        id: bigint;
+        id: string;
     };
     response?: T;
 }
