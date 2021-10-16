@@ -5,14 +5,6 @@ import WebSocket, { Data } from 'ws';
 import { Z_SYNC_FLUSH, Inflate } from 'zlib-sync';
 
 import { Client } from '../client/client';
-import {
-    CloseCodeErrorsMessages,
-    GatewayURL,
-    IrreversibleCodes,
-    GatewayEvents,
-    UnresumableCodes,
-    ConnectionProperties
-} from '../constants';
 import { ShardId } from '../sharding';
 import {
     CloseCodes,
@@ -26,7 +18,15 @@ import {
     ShardingOPCode,
     ShardingMessage
 } from '../types';
-import { Colors } from '../utils';
+import {
+    CloseCodeErrorsMessages,
+    GatewayURL,
+    IrreversibleCodes,
+    GatewayEvents,
+    UnresumableCodes,
+    ConnectionProperties,
+    Colors
+} from '../utils';
 
 class Gateway extends EventEmitter {
     private static instance: Gateway;
@@ -89,7 +89,7 @@ class Gateway extends EventEmitter {
             this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
             const message: ShardingMessage = {
                 op: ShardingOPCode.Connected,
-                shardId: ShardId
+                shardId: ShardId > -1 ? ShardId : 0
             };
             parentPort?.postMessage(message);
         });
@@ -272,9 +272,10 @@ class Gateway extends EventEmitter {
             intents,
             properties: ConnectionProperties,
             compress: payloadCompression,
-            shard: [ShardId, shards as number], //Temporary too, shard fetching hasn't been added yet
+            shard: [ShardId > -1 ? ShardId : 0, shards as number], //Temporary too, shard fetching hasn't been added yet
             //Temporary
             presence: {
+                since: null,
                 status: 'online',
                 afk: false,
                 activities: []

@@ -3,11 +3,10 @@ import { EventEmitter } from 'events';
 import { isMainThread } from 'worker_threads';
 
 import { Cache } from '.';
-import { GatewayEvents } from '../constants';
 import Gateway from '../gateway';
 import { ShardId, ThreadManager } from '../sharding';
 import { ClientCache, BotConfig, ClientOptions } from '../types';
-import { Colors, loadConfig } from '../utils';
+import { Colors, loadConfig, GatewayEvents } from '../utils';
 
 export class Client extends EventEmitter {
     public static get config(): BotConfig {
@@ -29,7 +28,7 @@ export class Client extends EventEmitter {
 
     constructor(private _options: ClientOptions) {
         super();
-        Client._config = loadConfig(this._options.path);
+        Client._config = loadConfig(this._options);
 
         ThreadManager.createThreads(this);
 
