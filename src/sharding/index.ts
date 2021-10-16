@@ -3,7 +3,7 @@ import { isMainThread, parentPort, Worker, workerData } from 'worker_threads';
 import { Client } from '../client';
 import { ShardingMessage, ShardingOPCode, CacheType } from '../types';
 
-export const ShardId = (!isMainThread && (workerData.ShardId as number)) || 0;
+export const ShardId = (!isMainThread && (workerData.ShardId as number)) || -1;
 export const NumShards = (!isMainThread && (workerData.totalShards as number)) || 0;
 
 export class ThreadManager extends null {

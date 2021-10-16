@@ -1,7 +1,8 @@
 import { GatewayIntents } from '../gateway';
 
 export interface ClientOptions {
-    path: string;
+    configPath?: string;
+    config?: Partial<BotConfig>;
     main: string;
 }
 
