@@ -1,3 +1,5 @@
+import { Integration } from './guild';
+
 export interface User {
     id: string;
     username: string;
@@ -37,4 +39,32 @@ export enum PremiumTypes {
     None = 0,
     NitroClassic,
     Nitro
+}
+
+export interface ModifyCurrentUser {
+    username: string;
+    avatar: string | null;
+}
+
+export interface GetCurrentUserGuilds {
+    before: string;
+    after: string;
+    limit: number;
+}
+
+export interface Connection {
+    id: string;
+    name: string;
+    type: 'twicth' | 'youtube';
+    revoked?: boolean;
+    integrations?: Integration[];
+    verified: boolean;
+    friend_sync: boolean;
+    show_activity: boolean;
+    visibility: VisibilityType;
+}
+
+export enum VisibilityType {
+    None = 0,
+    Everyone
 }

@@ -1,3 +1,4 @@
+import { AllowedMentions } from '.';
 import { Application } from './application';
 import { Channel, ChannelMention } from './channel';
 import { Reaction } from './emoji';
@@ -100,6 +101,29 @@ export enum MessageActivityType {
     Spectate,
     Listen,
     JoinRequest = 5
+}
+
+export interface CreateMessage {
+    content: string;
+    tts: boolean;
+    file: string;
+    embeds: Embed[];
+    payload_json: string;
+    allowed_mentions: AllowedMentions;
+    message_reference: MessageReference;
+    components: Component[];
+    sticker_ids: string[];
+}
+
+export interface ModifyMessage {
+    content: string;
+    embeds: Embed[];
+    flags: MessageFlags;
+    file: string;
+    payload_json: string;
+    allowed_mentions: AllowedMentions;
+    attachments: Attachment[];
+    components: Component[];
 }
 
 export type Embed = Partial<{

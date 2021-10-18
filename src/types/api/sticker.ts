@@ -40,3 +40,16 @@ export enum StickerFormatType {
     Apng,
     Lottie
 }
+
+export interface CreateGuildSticker {
+    name: string;
+    description: string;
+    tags: string;
+    file: string;
+}
+
+export interface ModifyGuildSticker {
+    name: string;
+    description: string | null;
+    tags: string;
+}

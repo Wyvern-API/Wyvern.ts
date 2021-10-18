@@ -58,6 +58,45 @@ export interface Guild<T = unknown> {
     stickers?: Sticker[];
 }
 
+export interface CreateGuild {
+    name: string;
+    icon?: string;
+    verfication_level?: VerificationLevel;
+    default_message_notifications?: DefaultMessageNotificationLevel;
+    explicit_content_filter?: ExplicitContentFilterLevel;
+    roles?: Role[];
+    channels?: Partial<Channel>[];
+    afk_channel_id?: string;
+    afk_timeout?: number;
+    system_channel_id?: string;
+    system_channel_flags?: SystemChannelFlags;
+}
+
+export interface GetGuild {
+    with_counts?: boolean;
+}
+
+export interface ModifyGuild {
+    name: string;
+    verification_level: VerificationLevel | null;
+    default_message_notifications: DefaultMessageNotificationLevel | null;
+    explicit_content_filter: ExplicitContentFilterLevel | null;
+    afk_channel_id: string | null;
+    afk_timeout: number;
+    icon: string | null;
+    owner_id: string;
+    splash: string | null;
+    discovery_splash: string | null;
+    banner: string | null;
+    system_channel_id: string | null;
+    system_channel_flags: SystemChannelFlags;
+    rules_channel_id: string | null;
+    public_updates_channel_id: string | null;
+    preferred_locale: string | null;
+    features: GuildFeatures[];
+    description: string | null;
+}
+
 export type GuildFeatures =
     | 'ANIMATED_ICON'
     | 'BANNER'
@@ -92,6 +131,12 @@ export interface WelcomeScreenChannel {
     description: string;
     emoji_id: string | null;
     emoji_name: string | null;
+}
+
+export interface ModifyGuildWelcomeScreen {
+    enabled: boolean;
+    welcome_channels: WelcomeScreenChannel[];
+    description: string;
 }
 
 export enum VerificationLevel {
@@ -131,6 +176,24 @@ export enum GuildNSFWLevel {
     AgeRestricted
 }
 
+export interface GuildPreview {
+    id: string;
+    name: string;
+    icon: string | null;
+    splash: string | null;
+    discovery_splash: string | null;
+    emojis: Emoji[];
+    features: GuildFeatures[];
+    approximate_member_count: number;
+    approximate_presence_count: number;
+    description: string | null;
+}
+
+export interface GuildWidget {
+    enabled: boolean;
+    channel_id: string | null;
+}
+
 export interface Role {
     id: string;
     name: string;
@@ -143,6 +206,31 @@ export interface Role {
     managed: boolean;
     mentionable: boolean;
     tags?: RoleTag;
+}
+
+export interface CreateRole {
+    name: string;
+    permissions: string;
+    color: string;
+    hoist: boolean;
+    icon: string;
+    unicoce_emoji: string | null;
+    mentionable: boolean;
+}
+
+export interface ModifyGuildRolePosition {
+    id: string;
+    position?: number | null;
+}
+
+export interface ModifyGuildRole {
+    name: string;
+    permissions: string;
+    color: string;
+    hoist: boolean;
+    icon?: string;
+    unicode_emoji?: string;
+    mentionable: boolean;
 }
 
 export interface RoleTag {
@@ -170,3 +258,101 @@ export interface GuildMember {
     pending?: boolean;
     permissions?: string;
 }
+
+export interface ListGuildMembers {
+    limit: number;
+    after: string;
+}
+
+export interface SearchGuildMembers {
+    query: string;
+    limit: number;
+}
+
+export interface AddGuildMember {
+    access_token: string;
+    nick: string;
+    roles: string[];
+    mute: boolean;
+    deaf: boolean;
+}
+
+export interface ModifyGuildMember {
+    nick: string;
+    roles: string[];
+    mute: boolean;
+    deaf: boolean;
+    channel_id: string;
+}
+
+export interface ModifyCurrentMember {
+    nick?: string | null;
+}
+
+export interface ModifyCurrentUserNick {
+    nick?: string | null;
+}
+
+export interface Integration {
+    id: string;
+    name: string;
+    type: 'twicth' | 'youtube' | 'discord';
+    enabled: boolean;
+    syncing?: boolean;
+    role_id?: string;
+    enable_emoticons?: boolean;
+    expire_behavior: IntegrationExpireBehavior;
+    expire_grace_period?: number;
+    user?: User;
+    account: IntegrationAccount;
+    synced_at?: string;
+    subscriber_count?: number;
+    revoked?: boolean;
+    application?: IntegrationApplication;
+}
+
+export enum IntegrationExpireBehavior {
+    RemoveRole = 0,
+    Kick
+}
+
+export interface IntegrationAccount {
+    id: string;
+    name: string;
+}
+
+export interface IntegrationApplication {
+    id: string;
+    name: string;
+    icon: string | null;
+    description: string;
+    summary: string;
+    bot?: User;
+}
+
+export interface CreateBan {
+    delete_message_days?: number;
+    reason?: string;
+}
+
+export interface Ban {
+    reason: string;
+    user: User;
+}
+
+export interface GetGuildPruneCount {
+    days: number;
+    include_roles: string;
+}
+
+export interface BeginGuildPrune {
+    days: number;
+    compute_prune_count: boolean;
+    include_roles: string;
+}
+
+export interface GetGuildWidgetImage {
+    style: WidgetStyleOptions;
+}
+
+export type WidgetStyleOptions = 'shield' | 'banner1' | 'banner2' | 'banner3' | 'banner4';

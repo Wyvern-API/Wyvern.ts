@@ -17,3 +17,19 @@ export interface Reaction {
     me: boolean;
     emoji: Partial<Emoji>;
 }
+
+export interface GetReactions {
+    after: string;
+    limit: number;
+}
+
+export interface CreateGuildEmoji {
+    name: string;
+    image: string;
+    roles: string[];
+}
+
+export interface ModifyGuildEmoji {
+    name: string;
+    roles: string[] | null;
+}

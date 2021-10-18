@@ -15,3 +15,22 @@ export interface VoiceState {
     suppress: boolean;
     request_to_speak_timestamp: string | null;
 }
+
+export interface ModifyCurrentUserVoiceState {
+    channel_id: string;
+    suppress?: string;
+    request_to_speak_timestamp?: string | null;
+}
+
+export interface ModifyUserVoiceState {
+    channel_id: string;
+    suppress?: string;
+}
+
+export interface VoiceRegion {
+    id: string;
+    name: string;
+    optimal: boolean;
+    deprecated: boolean;
+    custom: boolean;
+}
