@@ -1,3 +1,4 @@
+import { FileContent } from '../../utils';
 import { User } from './user';
 
 export interface Sticker {
@@ -45,7 +46,7 @@ export interface CreateGuildSticker {
     name: string;
     description: string;
     tags: string;
-    file: string;
+    file: FileContent;
 }
 
 export interface ModifyGuildSticker {

@@ -1,9 +1,10 @@
-import { AllowedMentions } from '.';
+import { FileContent } from '../../utils';
 import { Application } from './application';
-import { Channel, ChannelMention } from './channel';
+import { Channel, ChannelMention, AllowedMentions } from './channel';
+import { Component } from './components';
 import { Reaction } from './emoji';
 import { GuildMember, Role } from './guild';
-import { Component, InteractionType } from './interaction';
+import { InteractionType } from './interaction';
 import { Sticker, StickerItem } from './sticker';
 import { User } from './user';
 
@@ -103,28 +104,28 @@ export enum MessageActivityType {
     JoinRequest = 5
 }
 
-export interface CreateMessage {
+export type CreateMessage = Partial<{
     content: string;
     tts: boolean;
-    file: string;
+    file: FileContent[];
     embeds: Embed[];
     payload_json: string;
     allowed_mentions: AllowedMentions;
     message_reference: MessageReference;
     components: Component[];
     sticker_ids: string[];
-}
+}>;
 
-export interface ModifyMessage {
+export type ModifyMessage = Partial<{
     content: string;
     embeds: Embed[];
     flags: MessageFlags;
-    file: string;
+    file: FileContent[];
     payload_json: string;
     allowed_mentions: AllowedMentions;
     attachments: Attachment[];
     components: Component[];
-}
+}>;
 
 export type Embed = Partial<{
     title: string;
