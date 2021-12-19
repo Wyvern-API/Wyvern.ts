@@ -3,7 +3,7 @@ import { isMainThread, parentPort, Worker, workerData } from 'worker_threads';
 import { Client } from '../client';
 import { ShardingMessage, ShardingOPCode, CacheType } from '../types';
 
-export const ShardId = (!isMainThread && (workerData.ShardId as number)) || -1;
+export const ShardId = !isMainThread ? (workerData.ShardId as number) : 0;
 export const NumShards = (!isMainThread && (workerData.totalShards as number)) || 0;
 
 export class ThreadManager extends null {
@@ -12,8 +12,15 @@ export class ThreadManager extends null {
 
     public static async createThreads(client: Client): Promise<void> {
         this.client = client;
+
+        //TODO: Implement automatic sharding
+        if (typeof Client.config.shards === 'string') return;
+        //This part is very clumsy, I'll rewrite these 3 lines very soon
+        const numShards: number = Client.config.shards || 1;
+        if (numShards <= 1) return;
+
         if (isMainThread) {
-            for (let i = 0; i < (Client.config.shards || 0); i++) {
+            for (let i = 0; i < numShards; i++) {
                 await this.createThread(i);
             }
         } else {
