@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["ES2015"],
+        "lib": ["ES2019"],
         "target": "ES6",
         "esModuleInterop": true,
         "skipLibCheck": true,

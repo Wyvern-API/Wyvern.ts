@@ -87,6 +87,7 @@ class Gateway extends EventEmitter {
 
         ws.on('open', () => {
             this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
+            this.emit('open');
             const message: ShardingMessage = {
                 op: ShardingOPCode.Connected,
                 shardId: ShardId > -1 ? ShardId : 0
