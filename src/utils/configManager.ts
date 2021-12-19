@@ -23,6 +23,11 @@ export function loadConfig(clientOption: ClientOptions): BotConfig {
             payloadCompression: config.gateway?.payloadCompression || false,
             transportCompression: config.gateway?.transportCompression || false,
             format: config.gateway?.format || 'json'
+        },
+        http: {
+            timeout: config.http?.timeout || 15_000,
+            headers: config.http?.headers || [],
+            version: config.http?.version || 9
         }
     };
 }

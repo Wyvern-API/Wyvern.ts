@@ -15,7 +15,7 @@ export enum PrivacyLevel {
 export interface CreateStageInstance {
     channel_id: string;
     topic: string;
-    privacy_level: PrivacyLevel;
+    privacy_level?: PrivacyLevel;
 }
 
 export interface ModifyStageInstance {

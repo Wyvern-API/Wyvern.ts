@@ -1,7 +1,7 @@
 import { Nullable, FileContent } from '../../utils';
 import { Channel, AllowedMentions } from './channel';
+import { Component } from './components';
 import { Guild } from './guild';
-import { Component } from './interaction';
 import { Embed } from './message';
 import { User } from './user';
 
@@ -31,11 +31,11 @@ export interface CreateWebhook {
     avatar?: Nullable<string>;
 }
 
-export interface ModifyWebhook {
+export type ModifyWebhook = Partial<{
     name: string;
     avatar: Nullable<string>;
     channel_id: string;
-}
+}>;
 
 export interface ExecuteWebhook {
     wait: boolean;

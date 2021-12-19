@@ -42,15 +42,15 @@ export enum PremiumTypes {
 }
 
 export interface ModifyCurrentUser {
-    username: string;
-    avatar: string | null;
+    username?: string;
+    avatar?: string | null;
 }
 
-export interface GetCurrentUserGuilds {
+export type GetCurrentUserGuilds = Partial<{
     before: string;
     after: string;
     limit: number;
-}
+}>;
 
 export interface Connection {
     id: string;

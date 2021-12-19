@@ -31,7 +31,7 @@ export interface ApplicationCommandOption {
 export interface ApplicationCommandInteractionDataOption {
     name: string;
     type: ApplicationCommandOptionType;
-    value?: unknown; //TO DO: Rethink about the type
+    value?: unknown; //TODO: Rethink about the type
     options: ApplicationCommandInteractionDataOption;
 }
 
@@ -63,7 +63,7 @@ export interface GuildApplicationCommandPermissions {
 export interface ApplicationCommandPermissions {
     id: string;
     type: ApplicationCommandPermissionType;
-    permission: true;
+    permission: boolean;
 }
 
 export enum ApplicationCommandPermissionType {

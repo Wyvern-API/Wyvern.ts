@@ -49,8 +49,8 @@ export interface CreateGuildSticker {
     file: FileContent;
 }
 
-export interface ModifyGuildSticker {
+export type ModifyGuildSticker = Partial<{
     name: string;
     description: string | null;
     tags: string;
-}
+}>;

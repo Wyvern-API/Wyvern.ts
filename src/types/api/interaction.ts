@@ -6,7 +6,7 @@ import { GuildMember, Role } from './guild';
 import { Message } from './message';
 import { User } from './user';
 
-export interface Interface {
+export interface Interaction {
     id: string;
     application_id: string;
     type: InteractionType;

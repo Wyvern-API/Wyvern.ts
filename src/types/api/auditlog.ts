@@ -170,9 +170,9 @@ export type AuditLogChange =
           key: 'type';
       };
 
-export interface GetAuditLog {
+export type GetAuditLog = Partial<{
     user_id: string;
     action_type: AuditLogActionType;
     before: string;
     limit: number;
-}
+}>;

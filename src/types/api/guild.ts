@@ -58,25 +58,24 @@ export interface Guild<T = unknown> {
     stickers?: Sticker[];
 }
 
-export interface CreateGuild {
-    name: string;
-    icon?: string;
-    verfication_level?: VerificationLevel;
-    default_message_notifications?: DefaultMessageNotificationLevel;
-    explicit_content_filter?: ExplicitContentFilterLevel;
-    roles?: Role[];
-    channels?: Partial<Channel>[];
-    afk_channel_id?: string;
-    afk_timeout?: number;
-    system_channel_id?: string;
-    system_channel_flags?: SystemChannelFlags;
-}
+export type CreateGuild = { name: string } & Partial<{
+    icon: string;
+    verfication_level: VerificationLevel;
+    default_message_notifications: DefaultMessageNotificationLevel;
+    explicit_content_filter: ExplicitContentFilterLevel;
+    roles: Role[];
+    channels: Partial<Channel>[];
+    afk_channel_id: string;
+    afk_timeout: number;
+    system_channel_id: string;
+    system_channel_flags: SystemChannelFlags;
+}>;
 
 export interface GetGuild {
     with_counts?: boolean;
 }
 
-export interface ModifyGuild {
+export type ModifyGuild = Partial<{
     name: string;
     verification_level: VerificationLevel | null;
     default_message_notifications: DefaultMessageNotificationLevel | null;
@@ -95,7 +94,7 @@ export interface ModifyGuild {
     preferred_locale: string | null;
     features: GuildFeatures[];
     description: string | null;
-}
+}>;
 
 export type GuildFeatures =
     | 'ANIMATED_ICON'
@@ -133,11 +132,11 @@ export interface WelcomeScreenChannel {
     emoji_name: string | null;
 }
 
-export interface ModifyGuildWelcomeScreen {
+export type ModifyGuildWelcomeScreen = Partial<{
     enabled: boolean;
     welcome_channels: WelcomeScreenChannel[];
     description: string;
-}
+}>;
 
 export enum VerificationLevel {
     None = 0,
@@ -208,7 +207,7 @@ export interface Role {
     tags?: RoleTag;
 }
 
-export interface CreateRole {
+export type CreateGuildRole = Partial<{
     name: string;
     permissions: string;
     color: string;
@@ -216,14 +215,14 @@ export interface CreateRole {
     icon: string;
     unicoce_emoji: string | null;
     mentionable: boolean;
-}
+}>;
 
 export interface ModifyGuildRolePosition {
     id: string;
     position?: number | null;
 }
 
-export interface ModifyGuildRole {
+export type ModifyGuildRole = Partial<{
     name: string;
     permissions: string;
     color: string;
@@ -231,7 +230,7 @@ export interface ModifyGuildRole {
     icon?: string;
     unicode_emoji?: string;
     mentionable: boolean;
-}
+}>;
 
 export interface RoleTag {
     bot_id?: string;
@@ -277,13 +276,13 @@ export interface AddGuildMember {
     deaf: boolean;
 }
 
-export interface ModifyGuildMember {
+export type ModifyGuildMember = Partial<{
     nick: string;
     roles: string[];
     mute: boolean;
     deaf: boolean;
     channel_id: string;
-}
+}>;
 
 export interface ModifyCurrentMember {
     nick?: string | null;

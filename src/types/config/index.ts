@@ -4,6 +4,11 @@ export interface ClientOptions {
     configPath?: string;
     config?: Partial<BotConfig>;
     main: string;
+    http?: {
+        headers?: unknown;
+        timeout?: number;
+        version?: number;
+    };
 }
 
 export interface GatewayOptions {
@@ -13,13 +18,23 @@ export interface GatewayOptions {
 }
 
 export interface JSONBotConfig extends BaseConfig {
-    intents: GatewayIntents[];
+    intents?: GatewayIntents[];
     gateway?: Partial<GatewayOptions>;
+    http?: {
+        headers?: unknown;
+        timeout?: number;
+        version?: number;
+    };
 }
 
 export interface BotConfig extends BaseConfig {
     intents: number;
     gateway: GatewayOptions;
+    http: {
+        headers: unknown;
+        timeout: number;
+        version: number;
+    };
 }
 
 export interface BaseConfig {
