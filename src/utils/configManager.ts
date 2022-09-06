@@ -18,7 +18,7 @@ export function loadConfig(clientOption: ClientOptions): BotConfig {
         token: config.token,
         intents: calculateIntents(config.intents || []),
         prefix: config.prefix || '!',
-        shards: config.shards || undefined,
+        shards: config.shards || 1,
         gateway: {
             payloadCompression: config.gateway?.payloadCompression || false,
             transportCompression: config.gateway?.transportCompression || false,

@@ -1,5 +1,6 @@
 export * from './application';
 export * from './applicationCommands';
+export * from './automoderation';
 export * from './auditlog';
 export * from './channel';
 export * from './components';

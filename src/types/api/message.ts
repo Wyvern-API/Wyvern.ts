@@ -11,9 +11,7 @@ import { User } from './user';
 export interface Message {
     id: string;
     channel_id: string;
-    guild_id?: string;
     author: User;
-    member: Partial<GuildMember>;
     content: string;
     timestamp: string;
     edited_timestamp: string;

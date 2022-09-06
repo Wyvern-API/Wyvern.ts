@@ -10,7 +10,7 @@ export interface IdentifyData {
 }
 
 export interface IdentifyProperties {
-    $os: string;
-    $browser: string;
-    $device: string;
+    os: string;
+    browser: string;
+    device: string;
 }

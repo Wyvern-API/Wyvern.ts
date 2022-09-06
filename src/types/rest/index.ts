@@ -71,8 +71,10 @@ import {
     GuildApplicationCommandPermissions,
     InteractionResponse,
     CreateGuildChannel,
-    GetGuild
+    GetGuild,
+    QueryBan
 } from '../api';
+import { AutoModerationRule, CreateAutoModerationRule, ModifyAutoModerationRule } from '../api/automoderation';
 
 export type RequestMethod = 'get' | 'post' | 'patch' | 'delete' | 'put';
 
@@ -181,7 +183,7 @@ export interface APIEndpoints {
                     options: { patch: { data: ModifyGuildRole } };
                 }>;
             };
-            bans: Request<{ response: { get: User[] }; options: never }> & {
+            bans: Request<{ response: { get: User[] }; options: { get: { data: QueryBan } } }> & {
                 (id: string): Request<{
                     response: never;
                     options: { put: { data: { delete_message_days: number; reason: string } } };
@@ -239,6 +241,17 @@ export interface APIEndpoints {
                 (id: string): Request<{ response: { get: Sticker }; options: never }>;
             };
             webhooks: Request<{ response: { get: Webhook[] }; options: never }>;
+            'auto-moderation': {
+                rules: Request<{ response: { get: AutoModerationRule[] }; options: never }> & {
+                    (id: string): Request<{
+                        response: { get: AutoModerationRule; post: AutoModerationRule; patch: AutoModerationRule };
+                        options: {
+                            post: { data: CreateAutoModerationRule };
+                            patch: { data: ModifyAutoModerationRule };
+                        };
+                    }>;
+                };
+            };
         };
     } & {
         templates(id: string): Request<{

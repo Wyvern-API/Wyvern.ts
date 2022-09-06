@@ -16,7 +16,8 @@ import {
     ResponsePayload,
     ResumeData,
     ShardingOPCode,
-    ShardingMessage
+    ShardingMessage,
+    ReadyData
 } from '../types';
 import {
     CloseCodeErrorsMessages,
@@ -53,6 +54,7 @@ class Gateway extends EventEmitter {
         to: this.config.gateway.format === 'json' ? 'string' : undefined
     });
     private sessionId = '';
+    private resumeUrl = '';
     private sequence = -1;
     private closeSequence = -1;
     private _connectedAt = 0;
@@ -82,7 +84,7 @@ class Gateway extends EventEmitter {
             gateway: { transportCompression, format }
         } = this.config;
 
-        const ws = (this.ws = new WebSocket(GatewayURL(transportCompression, format)));
+        const ws = (this.ws = new WebSocket(GatewayURL(transportCompression, format, this.resumeUrl)));
         this._status = GatewayEvents.Connecting;
 
         ws.on('open', () => {
@@ -126,6 +128,7 @@ class Gateway extends EventEmitter {
 
         if (UnresumableCodes.includes(code)) {
             this.sessionId = '';
+            this.resumeUrl = '';
         }
 
         if (!IrreversibleCodes.includes(code)) {
@@ -192,6 +195,10 @@ class Gateway extends EventEmitter {
         switch (packet.t) {
             case 'READY':
                 this._connectedAt = Date.now();
+                const { session_id, resume_gateway_url } = packet.d as ReadyData;
+                this.sessionId = session_id;
+                this.resumeUrl = resume_gateway_url;
+                //TO DO: more things to be done here guilds, application etc
                 break;
         }
 

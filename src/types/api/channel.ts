@@ -61,7 +61,9 @@ export enum ChannelType {
     GuildNewsThread = 10,
     GuildPublicThread,
     GuildPrivateThread,
-    GuildStageVoice
+    GuildStageVoice,
+    GuildDirectory,
+    GuildForum
 }
 
 export interface Overwrite {

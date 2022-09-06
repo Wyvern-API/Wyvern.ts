@@ -12,7 +12,7 @@ export interface Application {
     term_of_service_url?: string;
     privacy_policy_url?: string;
     owner?: Partial<User>;
-    summary: string;
+    summary: ''; //TO DO: Field that will be removed
     verify_key: string;
     team: Team | null;
     guild_id?: string;

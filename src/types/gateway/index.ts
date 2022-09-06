@@ -8,3 +8,4 @@ export * from './resume';
 export * from './identify';
 export * from './intents';
 export * from './presence';
+export * from './ready';

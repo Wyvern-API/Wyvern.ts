@@ -2,7 +2,7 @@ import { GatewayIntents } from '../gateway';
 
 export interface ClientOptions {
     configPath?: string;
-    config?: Partial<BotConfig>;
+    config?: Partial<JSONBotConfig>;
     main: string;
     http?: {
         headers?: unknown;

@@ -1,3 +1,4 @@
+import { Nullable } from '../../utils';
 import { PresenceUpdateEvent } from '../gateway/presence';
 import { Channel } from './channel';
 import { Emoji } from './emoji';
@@ -256,6 +257,7 @@ export interface GuildMember {
     mute: boolean;
     pending?: boolean;
     permissions?: string;
+    communication_disabled_until?: Nullable<string>;
 }
 
 export interface ListGuildMembers {
@@ -333,6 +335,19 @@ export interface CreateBan {
     delete_message_days?: number;
     reason?: string;
 }
+
+export type QueryBan = {
+    limit?: number;
+} & (
+    | {
+          before?: string;
+          after?: never;
+      }
+    | {
+          before?: never;
+          after?: string;
+      }
+);
 
 export interface Ban {
     reason: string;

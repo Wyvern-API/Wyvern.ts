@@ -1,4 +1,4 @@
-import { Emoji } from '../api/emoji';
+import { Nullable } from '../../utils';
 import { User } from '../api/user';
 
 export interface PresenceUpdateEvent {
@@ -33,8 +33,8 @@ export interface Activity {
     application_id?: string;
     details?: string | null;
     state?: string | null;
-    emoji?: Emoji | null;
-    party?: Party;
+    emoji?: Nullable<ActivityEmoji>;
+    party?: ActivityParty;
     assets?: Asset;
     secrets?: Secret;
     instance?: boolean;
@@ -64,7 +64,13 @@ export interface Timestamp {
     end?: number;
 }
 
-export interface Party {
+export interface ActivityEmoji {
+    name: string;
+    id?: string;
+    animated?: boolean;
+}
+
+export interface ActivityParty {
     id?: string;
     size: [number, number];
 }
