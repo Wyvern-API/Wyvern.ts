@@ -1,7 +1,15 @@
 import { CloseCodes, IdentifyProperties } from '../types/gateway';
 
-export const GatewayURL = (compression: boolean, format: 'json' | 'etf'): string =>
-    `wss://gateway.discord.gg/?v=9&encoding=${format}${compression ? '&compress=zlib-stream' : ''}`;
+export const GatewayURL = (compression: boolean, format: 'json' | 'etf', gatewayUrl?: string): string => {
+    console.log(gatewayUrl);
+    return `${gatewayUrl || 'wss://gateway.discord.gg/'}?v=9&encoding=${format}${
+        compression ? '&compress=zlib-stream' : ''
+    }`;
+};
+
+export const API = 'https://discord.com/api';
+
+export const UserAgent = `DiscordBot (wyvern.dz, 1.0) Node.js/${process.version}`;
 
 export const IrreversibleCodes = Object.freeze([
     1000,
@@ -49,7 +57,7 @@ export enum GatewayEvents {
 }
 
 export const ConnectionProperties: IdentifyProperties = {
-    $os: process.platform,
-    $browser: 'Wyvern.ts',
-    $device: 'Wyvern.ts'
+    os: process.platform,
+    browser: 'Wyvern.ts',
+    device: 'Wyvern.ts'
 };

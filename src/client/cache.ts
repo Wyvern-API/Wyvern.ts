@@ -2,14 +2,14 @@ import { CacheType, ThreadManager } from '..';
 import { Client } from './';
 
 export class Cache<T> {
-    private cache: Map<bigint, T>;
+    private cache: Map<string, T>;
     private shards = Client.config.shards;
 
     constructor(private cacheType: CacheType) {
-        this.cache = new Map<bigint, T>();
+        this.cache = new Map<string, T>();
     }
 
-    public async get(id: bigint): Promise<T | undefined> {
+    public async get(id: string): Promise<T | undefined> {
         const result = this.cache.get(id);
 
         if (this.shards != null && result == null) {
@@ -19,12 +19,12 @@ export class Cache<T> {
         return result;
     }
 
-    public getSync(id: bigint): T | undefined {
+    public getSync(id: string): T | undefined {
         const result = this.cache.get(id);
         return result;
     }
 
-    public set(id: bigint, value: T): void {
+    public set(id: string, value: T): void {
         this.cache.set(id, value);
     }
 }

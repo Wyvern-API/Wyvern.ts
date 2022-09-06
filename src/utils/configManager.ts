@@ -1,13 +1,15 @@
-import { BotConfig, JSONBotConfig } from '../types/config';
+import { BotConfig, JSONBotConfig, ClientOptions } from '../types/config';
 import { GatewayIntents } from '../types/gateway';
 
-export function loadConfig(path: string): BotConfig {
-    if (!path.endsWith('.json')) {
+export function loadConfig(clientOption: ClientOptions): BotConfig {
+    const { configPath: path, config: clientConfig } = clientOption;
+    if (path && !path.endsWith('.json')) {
         throw new Error('Only json files are supported for now');
     }
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const config: Partial<JSONBotConfig> = require(path);
+    const jsonConfig = path ? require(path) : {};
+    const config: Partial<JSONBotConfig> = { ...jsonConfig, ...clientConfig };
     if (!config.token) {
         throw new Error('No provided token');
     }
@@ -21,6 +23,11 @@ export function loadConfig(path: string): BotConfig {
             payloadCompression: config.gateway?.payloadCompression || false,
             transportCompression: config.gateway?.transportCompression || false,
             format: config.gateway?.format || 'json'
+        },
+        http: {
+            timeout: config.http?.timeout || 15_000,
+            headers: config.http?.headers || [],
+            version: config.http?.version || 9
         }
     };
 }

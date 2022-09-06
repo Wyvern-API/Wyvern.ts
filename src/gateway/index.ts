@@ -5,14 +5,6 @@ import WebSocket, { Data } from 'ws';
 import { Z_SYNC_FLUSH, Inflate } from 'zlib-sync';
 
 import { Client } from '../client/client';
-import {
-    CloseCodeErrorsMessages,
-    GatewayURL,
-    IrreversibleCodes,
-    GatewayEvents,
-    UnresumableCodes,
-    ConnectionProperties
-} from '../constants';
 import { ShardId } from '../sharding';
 import {
     CloseCodes,
@@ -24,9 +16,18 @@ import {
     ResponsePayload,
     ResumeData,
     ShardingOPCode,
-    ShardingMessage
+    ShardingMessage,
+    ReadyData
 } from '../types';
-import { Colors } from '../utils';
+import {
+    CloseCodeErrorsMessages,
+    GatewayURL,
+    IrreversibleCodes,
+    GatewayEvents,
+    UnresumableCodes,
+    ConnectionProperties,
+    Colors
+} from '../utils';
 
 class Gateway extends EventEmitter {
     private static instance: Gateway;
@@ -53,6 +54,7 @@ class Gateway extends EventEmitter {
         to: this.config.gateway.format === 'json' ? 'string' : undefined
     });
     private sessionId = '';
+    private resumeUrl = '';
     private sequence = -1;
     private closeSequence = -1;
     private _connectedAt = 0;
@@ -82,14 +84,15 @@ class Gateway extends EventEmitter {
             gateway: { transportCompression, format }
         } = this.config;
 
-        const ws = (this.ws = new WebSocket(GatewayURL(transportCompression, format)));
+        const ws = (this.ws = new WebSocket(GatewayURL(transportCompression, format, this.resumeUrl)));
         this._status = GatewayEvents.Connecting;
 
         ws.on('open', () => {
             this.emitEvent(GatewayEvents.Ready, Colors.Green, 'Websocket opened');
+            this.emit('open');
             const message: ShardingMessage = {
                 op: ShardingOPCode.Connected,
-                shardId: ShardId
+                shardId: ShardId > -1 ? ShardId : 0
             };
             parentPort?.postMessage(message);
         });
@@ -125,6 +128,7 @@ class Gateway extends EventEmitter {
 
         if (UnresumableCodes.includes(code)) {
             this.sessionId = '';
+            this.resumeUrl = '';
         }
 
         if (!IrreversibleCodes.includes(code)) {
@@ -191,6 +195,10 @@ class Gateway extends EventEmitter {
         switch (packet.t) {
             case 'READY':
                 this._connectedAt = Date.now();
+                const { session_id, resume_gateway_url } = packet.d as ReadyData;
+                this.sessionId = session_id;
+                this.resumeUrl = resume_gateway_url;
+                //TO DO: more things to be done here guilds, application etc
                 break;
         }
 
@@ -272,9 +280,10 @@ class Gateway extends EventEmitter {
             intents,
             properties: ConnectionProperties,
             compress: payloadCompression,
-            shard: [ShardId, shards as number], //Temporary too, shard fetching hasn't been added yet
+            shard: [ShardId > -1 ? ShardId : 0, shards as number], //Temporary too, shard fetching hasn't been added yet
             //Temporary
             presence: {
+                since: null,
                 status: 'online',
                 afk: false,
                 activities: []

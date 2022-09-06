@@ -4,30 +4,40 @@
   "main": "./build/index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon . --watch ./build",
     "build": "tsc -w",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "test": "jest"
   },
   "dependencies": {
+    "@sapphire/async-queue": "^1.1.9",
     "@wyvern-api/erlpack": "^0.2.2",
     "chalk": "^4.1.2",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "2.6.1",
     "pako": "^2.0.4",
+    "tiny-typed-emitter": "^2.1.0",
     "ws": "^8.0.0",
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
+    "@babel/core": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "@babel/preset-typescript": "^7.15.0",
+    "@jest/globals": "^27.2.5",
     "@trivago/prettier-plugin-sort-imports": "^2.0.2",
     "@types/chalk": "^2.2.0",
+    "@types/jest": "^27.0.2",
     "@types/node": "^16.4.13",
+    "@types/node-fetch": "^2.5.12",
     "@types/pako": "^1.0.2",
     "@types/ws": "^7.4.7",
     "@typescript-eslint/eslint-plugin": "^4.29.0",
     "@typescript-eslint/parser": "^4.29.0",
+    "babel-jest": "^27.2.5",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "^25.2.1",
     "eslint-plugin-prettier": "^3.4.0",
-    "jest": "^27.0.6",
+    "jest": "^27.2.5",
     "prettier": "^2.3.2",
     "typescript": "^4.3.5"
   }
